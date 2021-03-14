@@ -1,11 +1,15 @@
+_03/2021_
+
 # VA.gov Content Publishing
+
+VA.gov is a _static website_, meaning that when a user navigates to a page on the website, the files for that page are served as-is from the web server without any dynamic behavior or transformations applied. To publish new versions of the website with updated code or content, a processed referred to as a _front-end build_ is executed. The result of a front-end build is a directory of static files like HTML, which is then uploaded onto the VA.gov web server to become the new version of the website. This process as a whole — from the start of the front-end build to the new files being served from the web server — is generally referred to as a _front-end deployment_. Once done, the website's general content has no downtime and pages are served super quickly. However, the process of the front-end build itself is very complex and contained a number of challenges.
 
 ## Memory consumption
 
 ## Performance
 _February, 2021_
 
-VA.gov is a static website, meaning that to publish new code or new content, a _build_ is issued. The result of that build is a directory of static files like HTML, which is then uploaded to our host to become va.gov. This process as a whole is generally referred to as the front-end deployment. Once done, the website's general content has no downtime and pages are served super quickly.
+
 
 ## What was the problem?
 The process behind a front-end deployment is slow. The major bottleneck was when we fetched data out of our CMS (Drupal, in our case). That alone regularly took upwards of 20 minutes, sometimes timing out entirely. If the website got just a little bigger, that request for data would certainly time out and we wouldn't be able to publish new work.  
