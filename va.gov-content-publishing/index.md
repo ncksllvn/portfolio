@@ -2,14 +2,20 @@ _03/2021_
 
 # Improvements to the the VA.gov front-end build
 
-VA.gov is a _static website_, meaning that when a user navigates to a page on the website, the files for that page are served as-is from the web server without any dynamic behavior or transformations applied. To publish new versions of the website with updated code or content, a processed referred to as a _front-end build_ is executed. The result of a front-end build is a directory of static files like HTML, which is then uploaded onto the VA.gov web server to become the new version of the website. This process as a whole — from the start of the front-end build to the new files being served from the web server — is generally referred to as a _front-end deployment_. Once done, the website's general content has no downtime and pages are served super quickly. However, the process of the front-end build itself is very complex and contained a number of important challenges. 
+VA.gov is a _static website_, meaning that when a user navigates to a page on the website, the files for that page are served as-is from the web server without any dynamic behavior or transformations applied. To publish new versions of the website with updated code or content, a processed referred to as a _front-end build_ is executed. The result of a front-end build is a directory of static files like HTML, which is then uploaded onto the VA.gov web server to become the new version of the website. This process as a whole — from the start of the front-end build to the new files being served from the web server — is generally referred to as a _front-end deployment_. Once done, the website's general content has no downtime and pages are served super quickly. However, the process of the front-end build itself is very complex and faced some important challenges. 
 
-1. __Performance__ - The duration of a front-end build is particularly important because the longer it takes, the longer a content editor has to wait in order to see their article changes (or other update to the website content) reflected on the website. 
+1. [Front-end builds used too much memory](#Front-end-builds-used-too-much-memory)
+2. [Front-end builds were too slow](#Front-end-builds-used-were-too-slow)
 
-## Memory consumption
+## Front-end builds used too much memory
+_January, 2021_
 
-## Performance
+Engineers regularly execute front-end builds from their local workstations as part of the workflow for creating and editing website templates. If the process were too memory intensive, engineers would not be able to work as productively, as they may find the process is too unstable or that their workstations simply do not contain enough memory to execute it.
+
+## Front-end builds were too slow
 _February, 2021_
+
+The duration of a front-end build is very important because the longer it takes, the longer a content editor has to wait in order to see their article changes (or other update to the website content) reflected on the website. A quicker front-end build also results in quicker front-end deployments, meaning teams can respond to and recover more quickly in the event of an incident
 
 
 ## What was the problem?
