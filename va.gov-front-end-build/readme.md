@@ -31,8 +31,8 @@ I opened a pull request proposing the changes to my direct team members and thos
 The results were dramatic. Before my changes, peak memory use was measured at 6255.67mB - over 6 gigabytes. After my changes, memory peaked at only 819.76mB - less than 1 gigabyte. __This means that we were able to reduce memory consumption by 87%, completing eliminating the issue of memory intensiveness from the front-end build.__
 
 - https://github.com/department-of-veterans-affairs/vets-website/pull/15601.
-- [PDF of pull request 15601]()
-- [PDF of pull request 15601]()
+- [PDF of pull request 15601](./files/15601.pdf)
+- [PDF of files changed in pull request 15601](./files/15601_files-changed.pdf) (_Note - because of some files being moved into a new directory as well as being slightly modified, the diff portrays many more lines changed than there really were. The main concept of the changes is shown in `src/site/stages/build/plugins/modify-dom/index.js`._)
 
 ## Front-end builds were too slow
 _February, 2021_
