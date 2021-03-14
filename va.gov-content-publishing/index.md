@@ -21,8 +21,14 @@ There are a number of sub-operations (steps) performed during the overall proces
 The results of the analyis were clear - the step labelled `Parse HTML files` increased the process's memory consumption by over 5 gigabytes, so this was the step of interest. My goal was simple - refactor this build step to use less memory.
 
 ### What did we do about it?
-The source code behind the memory-intensive build step was brief. It was not hard to understand why it was so memory-intensive. Each build step has access to every file of the website with the contents of each file available as a plain string (text) value. However, some build steps perform advanced file manipulations that require the plain string value of `.html` files parsed into a virtual DOM tree, so that the HTML file can be manipulated in sophisticated ways. The `Parse HTML files` build step parsed a virtual DOM tree from every `.html` file, which subsequent build steps could then reliably access. This means that the combined weight of every HTML file's virtual DOM was stored in memory at once.
+The source code behind the memory-intensive build step was brief. It was not hard to understand why it was so memory-intensive. Each build step has access to every file of the website with the contents of each file available as a plain string (text) value. However, some build steps perform advanced file manipulations that require the plain string value of `.html` files parsed into a virtual DOM tree, so that the HTML file can be manipulated in sophisticated ways. The `Parse HTML files` build step parsed a virtual DOM tree from every `.html` file, which subsequent build steps could then reliably access (an example of one of these build steps is one that automatically generates and adds element-IDs onto heading tags.) This means that the combined weight of every HTML file's virtual DOM was stored in memory at once.
 
+The concept behind my approach - it uses too much memory to have every file's virtual DOM in memory at once, so simply parse each file's virtual DOM one a time and operate only on that file before deleting its virtual DOM and repeating with the next file. This would also require refactoring subsequent build steps that required  each file's virtual DOM, but it would mean only one virtual DOM would be stored in memory at a time.
+
+I opened a pull request proposing the changes and presenting my results to my direct team members and those on the Platform team, https://github.com/department-of-veterans-affairs/vets-website/pull/15601.
+
+### What happened?
+The results were dramatic. Before my changes, peak memory use was measured at 6255.67mB - over 6 gigabytes. After my changes, memory peaked at only 819.76mB - less than 1 gigabyte. __This means that we were able to reduce memory consumption by 87%, completing eliminating the issue of memory intensiveness from the front-end build.__
 
 ## Front-end builds were too slow
 _February, 2021_
