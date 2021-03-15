@@ -27,7 +27,7 @@ The source code behind the memory-intensive build step was brief. It was not har
 
 The code of interest iterates through all of the files and uses `Cheerio` (an NPM package) to parse a virtual DOM from every HTML file, binding the result of each operation to the original file object. The combined result is stored in memory all at once.
 
-![Screenshot of problematic code](./files/memory-bottleneck-code.pdf)
+![Screenshot of problematic code](./files/memory-bottleneck-code.png)
 </details>
 
 The concept behind my approach for improving it was simple - since it uses too much memory to have every file's virtual DOM in memory at once, only store one at a time. Parse the virtual DOM of a single file, operate only on it, delete its virtual DOM and then repeat with the next file. This would also require refactoring subsequent build steps that required each file's virtual DOM, but it would mean only one virtual DOM would be stored in memory at a time.
