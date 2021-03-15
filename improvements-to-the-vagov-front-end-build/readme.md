@@ -1,6 +1,6 @@
 _03/2021_
 
-# Improvements to the the VA.gov front-end build
+# Improvements to the VA.gov front-end build
 
 VA.gov is a _static website_, meaning that when a user navigates to a page on the website, the files for that page are served as-is from the web server without any dynamic behavior or transformations applied. To publish new versions of the website with updated code or content, a process referred to as a _front-end build_ is executed. The result of a front-end build is a directory of static files like HTML, which is then uploaded onto the VA.gov web server to become the new version of the website. This process as a whole — from the start of the front-end build to the new files being served from the web server — is generally referred to as a _front-end deployment_. Once done, the website's general content has no downtime and pages are served very quickly. However, the process of the front-end build itself is very complex and teams were faced with some important challenges in scaling it.
 
