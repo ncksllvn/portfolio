@@ -57,6 +57,7 @@ The results were dramatic. Before my changes, peak memory use was measured at `6
 
 </details>
 
+### Links
 - https://github.com/department-of-veterans-affairs/vets-website/pull/15601
 - [PDF of pull request 15601](./files/15601.pdf)
 - [PDF of files changed in pull request 15601](./files/15601_files-changed.pdf)
@@ -129,6 +130,7 @@ The improvement was very evident in the Jenkins job for front-build deployments.
 
 Our VA Medical Center team confidently published hundreds more pages the following week and continues to do so as of writing. Although there was still more work to do as the website grew, we concluded that the __GraphQL upgrade effectively eliminated our concerns of website scalability for the foreseeable future__.
 
+### Links
 - https://github.com/department-of-veterans-affairs/vets-website/pull/15974
 - [PDF of pull request 15974](./files/15974.pdf)
 - [PDF of files changed in pull request 15974](./files/15974_files-changed.pdf)
