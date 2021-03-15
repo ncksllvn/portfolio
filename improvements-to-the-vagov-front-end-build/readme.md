@@ -13,7 +13,7 @@ _January, 2021_
 Engineers regularly execute front-end builds from their local workstations as part of the workflow for creating and editing website templates. If the process were too memory intensive, engineers would not be able to work as productively, as they may find the process is too unstable or that their workstations simply do not contain enough memory to execute it.
 
 ### What was the problem?
-By January 2021, the website had grown so substantially that the front-end build process now required nearly 7 gigabytes to execute. This was a major pain point facing teams and an imminently pressing issue, as the website was projected to grow exponentially throughout year including the first quarter. Engineers struggled in their local workflows as the front-end build process crashed due to memory exceptions, and we were concerned we would start encountering the same bottlenecks in our infrastructure as well.
+__By January 2021, the website had grown so substantially that the front-end build process now required nearly 7 gigabytes to execute.__ This was a major pain point facing teams and an imminently pressing issue, as the website was projected to grow exponentially throughout year including the first quarter. Engineers struggled in their local workflows as the front-end build process crashed due to memory exceptions, and we were concerned we would start encountering the same bottlenecks in our infrastructure as well. If the site grew any larger, engineers would either need computers with more memory or would have to start developing workarounds in order to run front-end builds on their machines.
 
 ### What were the goals?
 There are a number of sub-operations (steps) performed during the process of a front-end build, with each one lasting for various stretches of time and requiring various amounts of memory. I was able to identify which of these steps were the most memory-intensive by analyzing a summary of these operations outputted into my terminal after running a front-end build on my local machine with a special `verbose` command argument.
@@ -78,6 +78,8 @@ Although other teams operated on the assumption that the CMS's GraphQL API itsel
 
 <details><summary>Snapshot of the monolithic GraphQL query</summary>
 
+The snippet below of the monolithic GraphQL query illustrates how the various types of article converge into a single type of query called a `nodeQuery`. The actual full-length query is many thousands of lines.
+
 ![A code snippet of the GraphQL query](./files/graphql-monolithic-query.png)
 
 </details>
@@ -89,7 +91,12 @@ Through deep analysis of the monolithic GraphQL query, I determined and implemen
 
 <details><summary>Refactored GraphQL pattern</summary>
 
+The code snippet below illustrates how the `office` article-type is wrapped into its own `nodeQuery` so that it can be executed standalone.
+
 ![Code snippet of the query for article-type "office"](./files/graphql-refactored-query.png)
+
+The code snippet below illstrates the collection of GraphQL queries for fetching all types of articles. You can see the GraphQL query from the previous example included in the collection under the name `GetNodeOffices`.
+
 ![Code snippet showing the collection of GraphQL queries](./files/graphql-refactored-query-list.png)
 
 </details>
@@ -143,7 +150,7 @@ The improvement was very evident in the Jenkins job for front-build deployments.
 
 </details>
 
-Our VA Medical Center team confidently published hundreds more pages the following week and continues to do so as of writing. Although there was still more work to do as the website grew, we concluded that the __GraphQL upgrade effectively eliminated our concerns of website scalability for the foreseeable future__.
+Our VA Medical Center team confidently published hundreds more pages the following week and continues to do so as of writing. Although there is still much more work to do as the website grows, we concluded that the __GraphQL upgrade effectively eliminated our concerns of website scalability for the foreseeable future__.
 
 ### Links
 - https://github.com/department-of-veterans-affairs/vets-website/pull/15974
