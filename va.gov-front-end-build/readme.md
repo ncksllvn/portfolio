@@ -20,6 +20,12 @@ There are a number of sub-operations (steps) performed during the process of a f
 
 The results of the analyis were clear - the step labelled `Parse HTML files` increased the process's memory consumption by over 5 gigabytes, so this was the step of interest. My goal was simple - refactor this build step to use less memory.
 
+<details><summary>Output indicating memory issue</summary>
+
+![Screenshot of terminal output indicating heavy memory consumption](./files/memory-bottleneck-output.png)
+
+</details>
+
 ### What did we do about it?
 The source code behind the memory-intensive build step was brief. It was not hard to understand why it was so memory-intensive. Each build step has access to every file of the website with the contents of each file available as a plain string (text) value. However, some build steps perform advanced file manipulations that require the plain string value of `.html` files parsed into a virtual DOM tree, so that the HTML file can be manipulated in sophisticated ways. The `Parse HTML files` build step parsed a virtual DOM tree from every `.html` file, which subsequent build steps could then reliably access (an example of one of these build steps is one that automatically generates and adds element-IDs onto heading tags.) This means that the combined weight of every HTML file's virtual DOM was stored in memory at once.
 
@@ -30,16 +36,31 @@ The code of interest iterates through all of the files and uses `Cheerio` (an NP
 ![Screenshot of problematic code](./files/memory-bottleneck-code.png)
 </details>
 
-The concept behind my approach for improving it was simple - since it uses too much memory to have every file's virtual DOM in memory at once, only store one at a time. Parse the virtual DOM of a single file, operate only on it, delete its virtual DOM and then repeat with the next file. This would also require refactoring subsequent build steps that required each file's virtual DOM, but it would mean only one virtual DOM would be stored in memory at a time.
+The concept behind my approach for improving it was simple - since it uses too much memory to store every file's virtual DOM in memory at once, only store one at a time. Parse the virtual DOM of a single file, operate only on it, delete its virtual DOM and then repeat with the next file. This would also require refactoring subsequent build steps that required each file's virtual DOM, but it would mean only one virtual DOM would be stored in memory at a time.
 
 I opened a pull request proposing the changes to my direct team members and those on the Platform team.
+
+<details><summary>Code snippet after changes</summary>
+
+The updated code below shows a new pattern, where each file's virtual DOM is deleted from memory before the next file's virtual DOM is parsed.
+
+![Screenshot of improved code](./files/memory-bottleneck-fixed.png)
+
+</details>
 
 ### What happened?
 The results were dramatic. Before my changes, peak memory use was measured at `6255.67mB` - over 6 gigabytes. After my changes, memory peaked at only `819.76mB` - less than 1 gigabyte. __This means that we were able to reduce memory consumption by 87%, completing eliminating the issue of memory intensiveness from the front-end build.__
 
+<details><summary>Output indicating memory improvement</summary>
+
+![Screenshot of terminal output showing an 87% drop in memory consumption](./files/memory-bottleneck-output-fixed.png)
+
+</details>
+
 - https://github.com/department-of-veterans-affairs/vets-website/pull/15601
 - [PDF of pull request 15601](./files/15601.pdf)
-- [PDF of files changed in pull request 15601](./files/15601_files-changed.pdf) (_Note - because of some files being moved into a new directory as well as being slightly modified, the diff portrays many more lines changed than there really were. The main concept of the changes is shown in `src/site/stages/build/plugins/modify-dom/index.js`._)
+- [PDF of files changed in pull request 15601](./files/15601_files-changed.pdf)
+  - _Note: Because of some files being moved into a new directory as well as being slightly modified, the diff portrays many more lines changed than there really were. The main concept of the changes is shown in `src/site/stages/build/plugins/modify-dom/index.js`._
 
 ## Front-end builds were too slow
 _February, 2021_
@@ -47,14 +68,14 @@ _February, 2021_
 The duration of a front-end build is very important because the longer it takes, the longer a content editor has to wait in order to see their article changes (or other update to the website content) reflected on the website. As more editors were onboarded and granted access to the VA.gov content management system (CMS), there became a large emphasis on the speed of a front-end build, because many of the new editors were accustomed to the typical experience of a CMS where a page request is served using data pulled from the database at the time of the request. As a static website, the architecture of VA.gov was quite different, but we hoped to satisy the editors through a rapid publishing process powered by a fast front-end build.
 
 ### What was the problem?
-To say that the front-end build was not fast enough to satisfy editors would be an understatement - the front-end build was critically slow. The major bottleneck occurred during a build step that fetched articles and other forms of content data from the VA.gov CMS. That build step alone regularly took upwards of 20 minutes, sometimes timing out entirely, causing the whole process to completely fail. With the current state of the front-end build, the website could no longer grow, and the roadmap required that the website grow exponentially starting as soon as possible.
+To say that the front-end build was not fast enough to satisfy editors would be an understatement - __the front-end build was critically slow__. The major bottleneck occurred during a build step that fetched articles and other forms of content data from the VA.gov CMS. That build step alone regularly took upwards of 20 minutes, sometimes timing out entirely, causing the whole process to completely fail. With the current state of the front-end build, the website could no longer grow, and the roadmap required that the website grow exponentially starting as soon as possible.
 
 ### What were the goals?
 The build step that fetched data from the CMS did so by issuing a single large GraphQL query structured to ask for every article of every article-type as well as every website component (menus, etc) all at once, like a SQL query that says _give me everything from every table_.
 
-Although other teams operated on the assumption that the CMS's GraphQL API itself was the bottleneck and intended to replace it entirely with a new method of fetching data, my team hypothesized that the GraphQL API was fine, and that it was how the query was written that was the issue.
+Although other teams operated on the assumption that the CMS's GraphQL API itself was the bottleneck and intended to replace it entirely with a new method of fetching data, I hypothesized that the GraphQL API was fine, and that it was how the query was written that was the issue.
 
-Our goal became to optimize this GraphQL query by unstitching it into many smaller queries and then executing them individually in order to achieve a significant performance boost in a short timeframe.
+My goal became to optimize this GraphQL query by unstitching it into many smaller queries and then executing them individually in order to achieve a significant performance boost in a short timeframe.
 
 ### What did we do about it?
 Through deep analysis of the monolithic GraphQL query, I determined and implemented a strategy of unstitching the monolithic query into a collection of smaller queries. This was relatively straightforward - instead of asking for everything at once, ask for each type of article in its own request.
@@ -98,7 +119,7 @@ In the chart below, the vertical axis indicates response times in seconds, while
 
 After these deeper improvements, teams concluded an approximate __96% increase in processing time or 30X increase in throughput__.
 
-<details><summary>Improvements to overall deployment times</summary>
+<details><summary>Improvements to deployment times post-launch</summary>
 
 The improvement was very evident in the Jenkins job for front-build deployments. The GraphQL upgrade is reflected in the `Build` column starting on February 15th.
 
