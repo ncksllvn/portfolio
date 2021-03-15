@@ -93,7 +93,7 @@ After these deeper improvements, we measured an approximate __96% increase in pr
 
 <details><summary>Improvements to overall deployment times</summary>
 
-The improvement was very evident in the Jenkins job for front-build deployments. The GraphQL upgrade is reflected in the `Build` starting on February 15th.
+The improvement was very evident in the Jenkins job for front-build deployments. The GraphQL upgrade is reflected in the `Build` column starting on February 15th.
 
 ![screenshot of Jenkins dashboard showing build times drop from upwards of 15 minutes to about 2 minutes](./files/jenkins-content-build.png)
 
