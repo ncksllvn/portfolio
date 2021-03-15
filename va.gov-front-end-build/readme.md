@@ -56,10 +56,9 @@ I also created a mechanism for paginating large data sets, so that if there were
 
 Next, I added logic for executing the entire entire collection using 15 parallel HTTP requests at a time. The response data of each request is merged into a single shared data set. Once all requests have finished, the data set should match that of the original monolithic GraphQL query, which I could ensure through thorough unit testing. I also added some interesting terminal output, so we could observe which queries were the most expensive or contained large data sets.
 
-<details>
-<summary>Output of GraphQL process as observed in Jenkins build job</summary>
+<details><summary>Output of GraphQL process</summary>
 
-The output is formatted into a Markdown table so it could easily be copied into a GitHub comment. The table contains columns for the name of the GraphQL query, response time in seconds, and the number of pages included in the response data (if applicable, as some queries returned data other than a list of pages.)
+The output is formatted into a Markdown table so it could easily be copied into a GitHub comment. The table contains columns for the name of the GraphQL query, response time in seconds, and the number of pages included in the response data (if applicable, as some queries returned data other than a list of pages.) The image below shows the output as visible in the Jenkins deployment job.
 
 ![Screenshot of terminal output](./files/jenkins-graphql-output.png)
 
@@ -68,38 +67,39 @@ The output is formatted into a Markdown table so it could easily be copied into 
 I opened a pull request introducing the refactored GraphQL approach along with some preliminary results to my direct team members and those on the Platform team. The changes were also backwards-compatible, meaning that surrounding code areas continued to function the same way, so the code changes were ultimately safe to merge.
 
 ### What happened?
-We saw dramatic improvement that far surpassed anything we had expected. The upgraded GraphQL (as it became to be known) demonstrated exponential improvement. Measuring performance was difficult because there were many variables, such as the caching mechanism of the GraphQL API, which was central to our strategy with the upgraded GraphQL queries. However, in our performance summary during the early stages of the GraphQL upgrade, __we concluded the performance improvement at 93.9% faster than the monolithic GraphQL query__. With the website at its then-current size of 1,720 pages, we saw response times at about __49 seconds__.
+We saw _dramatic_ improvement that far exceeded our expectations. The upgraded GraphQL (as it became to be known) demonstrated exponential improvement. Measuring performance was difficult because there were many variables, such as the caching mechanism of the GraphQL API, which was central to our strategy with the upgraded GraphQL queries. However, in our performance summary during the early stages of the GraphQL upgrade, __we concluded the performance improvement at 93.9% faster than the monolithic GraphQL query__. With the website at its then-current size of 1,720 pages, we saw response times at about __49 seconds__.
 
-<details>
-<summary>Detailed comparison of monolithic GraphQL query vs. new approach</summary>
+<details><summary>Performance comparison of early results</summary>
 
-In the chart below, the vertical axis indicates response times in seconds, while the horizontal axis indicates numbers of nodes. A _node_ can be considered a block of content used to compose an article. A single article may be composed of one or many nodes.
-
-The blue and red lines represent the performance of the monolithic GraphQL query, while the yellow and green lines represent the upgraded GraphQL query.
+In the chart below, the vertical axis indicates response times in seconds, while the horizontal axis indicates numbers of nodes. A _node_ can be considered a block of content used to compose an article. A single article may be composed of one or many nodes.The blue and red lines represent the performance of the monolithic GraphQL query, while the yellow and green lines represent the upgraded GraphQL query.
 
 ![line chart comparing the two query strategies](./files/graphql-comparison-chart.png)
 
 The monolithic GraphQL query could fetch 4,467 nodes in roughly 2057 seconds. The request would consistently time out beyond 5,000 nodes. The upgraded GraphQL approach, however, not just eliminated fears of timeouts but could fetch 5,561 nodes in only 177 seconds.
 
-After identifying some of the more costly queries and making some additional optimizations in those individual queries, we were able to see even deeper improvements. We also experimented with parallelization to find the most optimal number of GraphQL requests that could be run simultaneously. In the chart below, the blue and the red lines continue to represent the original, monolithic GraphQL query. The node count along the horizontal axis had to be significantly increased to account for how deeply the approach has scaled.
+</details>
+
+In the following month, we made even deeper improvements by addressing some of the more costly queries as observed in the build output. We also experimented with parallelization to find the most optimal number of GraphQL requests that could be run simultaneously.
+
+<details><summary>Performance comparison after further optimizations</summary>
+
+In the chart below, the vertical axis indicates response times in seconds, while the horizontal axis indicates numbers of nodes. A _node_ can be considered a block of content used to compose an article. A single article may be composed of one or many nodes.The blue and red lines represent the performance of the monolithic GraphQL query, while the yellow and green lines represent the upgraded GraphQL query.
 
 ![line chart comparing the two query strategies plus parallelization](./files/graphql-comparison-chart-2.JPG)
 
 </details>
 
-<details>
+After these deeper improvements, we measured an approximate __96% increase in processing time or 30X increase in throughput__.
 
-<summary>
+<details><summary>Improvements to overall deployment times</summary>
 
-The improvement was very evident in the Jenkins job for executing a front-build deployment. The GraphQL upgrade is reflected in the `Build` starting on February 15th.
-
-</summary>
+The improvement was very evident in the Jenkins job for front-build deployments. The GraphQL upgrade is reflected in the `Build` starting on February 15th.
 
 ![screenshot of Jenkins dashboard showing build times drop from upwards of 15 minutes to about 2 minutes](./files/jenkins-content-build.png)
 
 </details>
 
-Our VA Medical Center team confidently published hundreds more pages the following week and continues to do so as of writing. __The GraphQL upgrade effectively eliminated our concerns around website scalability__.
+Our VA Medical Center team confidently published hundreds more pages the following week and continues to do so as of writing. Although there was still more work to do as the website scaled, we had found that the __GraphQL upgrade effectively eliminated our concerns of website scalability for the foreseeable future__.
 
 
 - https://github.com/department-of-veterans-affairs/vets-website/pull/15974
