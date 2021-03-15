@@ -138,6 +138,8 @@ In the chart below, the vertical axis indicates response times in seconds, while
 
 ![line chart comparing the two query strategies plus parallelization](./files/graphql-comparison-chart-2.JPG)
 
+These results are __without any server-side caching__, so they indicate worst case scenarios. The performance in practice should be much better.
+
 </details>
 
 After these deeper improvements, teams concluded an approximate __96% increase in processing time or 30X increase in throughput__.
