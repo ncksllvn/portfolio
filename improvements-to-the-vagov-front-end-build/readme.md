@@ -36,7 +36,7 @@ The code of interest iterates through all of the files and uses `Cheerio` (an NP
 ![Screenshot of problematic code](./files/memory-bottleneck-code.png)
 </details>
 
-The concept behind my approach for improving it was simple - since it uses too much memory to store every file's virtual DOM in memory at once, only store one at a time. Parse the virtual DOM of a single file, operate only on it, delete its virtual DOM and then repeat with the next file. This would also require refactoring subsequent build steps that required each file's virtual DOM, but it would mean only one virtual DOM would be stored in memory at a time.
+The concept behind my approach for improving it was simple - __since it uses too much memory to store every file's virtual DOM in memory at once, only store one at a time__. Parse the virtual DOM of a single file, operate only on it, delete its virtual DOM and then repeat with the next file. This would also require refactoring subsequent build steps that required each file's virtual DOM, but it would mean only one virtual DOM would be stored in memory at a time.
 
 I opened a pull request proposing the changes to my direct team members and those on the Platform team.
 
@@ -78,13 +78,13 @@ Although other teams operated on the assumption that the CMS's GraphQL API itsel
 
 <details><summary>Snapshot of the monolithic GraphQL query</summary>
 
-The snippet below of the monolithic GraphQL query illustrates how the various types of article converge into a single type of query called a `nodeQuery`. The actual full-length query is many thousands of lines.
+The snippet below of the monolithic GraphQL query illustrates how the various types of articles converge into a single type of query called a `nodeQuery`. The actual full-length query is many thousands of lines.
 
 ![A code snippet of the GraphQL query](./files/graphql-monolithic-query.png)
 
 </details>
 
-My goal became to optimize this GraphQL query by unstitching it into many smaller queries and then executing them individually in order to achieve a significant performance boost in a short timeframe.
+__My goal became to optimize this GraphQL query by unstitching it into many smaller queries and then executing them individually in order to achieve a significant performance boost in a short timeframe.__
 
 ### What did we do about it?
 Through deep analysis of the monolithic GraphQL query, I determined and implemented a strategy of unstitching the monolithic query into a collection of smaller queries. This was relatively straightforward - instead of asking for everything at once, ask for each type of article in its own request. Then, I organized the entire set of small queries into a collection.
