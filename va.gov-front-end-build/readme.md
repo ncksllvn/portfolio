@@ -66,7 +66,7 @@ The results were dramatic. Before my changes, peak memory use was measured at `6
 ## Front-end builds were too slow
 _February, 2021_
 
-The duration of a front-end build is very important because the longer it takes, the longer a content editor has to wait in order to see their article changes (or other update to the website content) reflected on the website. As more editors were onboarded and granted access to the VA.gov content management system (CMS), there became a large emphasis on the speed of a front-end build, because many of the new editors were accustomed to the typical experience of a CMS where a page request is served using data pulled from the database at the time of the request. As a static website, the architecture of VA.gov was quite different, but we hoped to satisy the editors through a rapid publishing process powered by a fast front-end build.
+The performance of a front-end build is very important because the longer it takes, the longer a content editor has to wait in order to see their article changes (or other update to the website content) reflected on the website. As more editors were onboarded and granted access to the VA.gov content management system (CMS), there became a large emphasis on the speed of a front-end build, because many of the new editors were accustomed to the typical experience of a CMS where a page request is served using data pulled from the database at the time of the request. As a static website, the architecture of VA.gov was quite different, but we hoped to satisy the editors through a rapid publishing process powered by a fast front-end build.
 
 ### What was the problem?
 To say that the front-end build was not fast enough to satisfy editors would be an understatement - __the front-end build was critically slow__. The major bottleneck occurred during a build step that fetched articles and other forms of content data from the VA.gov CMS. That build step alone regularly took upwards of 20 minutes, sometimes timing out entirely, causing the whole process to completely fail. With the current state of the front-end build, the website could no longer grow, and the roadmap required that the website grow exponentially starting as soon as possible.
@@ -76,16 +76,31 @@ The build step that fetched data from the CMS did so by issuing a single large G
 
 Although other teams operated on the assumption that the CMS's GraphQL API itself was the bottleneck and intended to replace it entirely with a new method of fetching data, I hypothesized that the GraphQL API was fine, and that it was how the query was written that was the issue.
 
+<details><summary>Snapshot of the monolithic GraphQL query</summary>
+
+![A code snippet of the GraphQL query](./files/graphql-monolithic-query.png)
+
+</details>
+
 My goal became to optimize this GraphQL query by unstitching it into many smaller queries and then executing them individually in order to achieve a significant performance boost in a short timeframe.
 
 ### What did we do about it?
-Through deep analysis of the monolithic GraphQL query, I determined and implemented a strategy of unstitching the monolithic query into a collection of smaller queries. This was relatively straightforward - instead of asking for everything at once, ask for each type of article in its own request.
+Through deep analysis of the monolithic GraphQL query, I determined and implemented a strategy of unstitching the monolithic query into a collection of smaller queries. This was relatively straightforward - instead of asking for everything at once, ask for each type of article in its own request. Then, I organized the entire set of small queries into a collection.
 
-I also created a mechanism for paginating large data sets, so that if there were many articles of a certain type, we could segment that data into smaller lists of small data sets. I speculated that this method may allow us to take advantage of some interesting caching behavior I had observed with the CMS's GraphQL API, where sometimes the monolithic GraphQL query received the response data within seconds.
+<details><summary>Refactored GraphQL pattern</summary>
 
-Next, I added logic for executing the entire entire collection using 15 parallel HTTP requests at a time. The response data of each request is merged into a single shared data set. Once all requests have finished, the data set should match that of the original monolithic GraphQL query, which I could ensure through thorough unit testing. I also added some interesting terminal output, so we could observe which queries were the most expensive or contained large data sets.
+![Code snippet of the query for article-type "office"](./files/graphql-refactored-query.png)
+![Code snippet showing the collection of GraphQL queries](./files/graphql-refactored-query-list.png)
 
-<details><summary>Output of GraphQL process</summary>
+</details>
+
+Next, I added logic for executing the entire entire collection using 15 parallel HTTP requests at a time. The response data of each request is merged into a single shared data set. Once all requests have finished, the data set should match that of the original monolithic GraphQL query, which I could ensure through thorough unit testing.
+
+After introducing the concept to a team member on the CMS program, things became even more exciting as we brainstormed ideas for going further. We observed some types of articles had many instances, so it wasn't efficient to request them all at once. After some collaborating, I added a mechanism for slicing up these large data sets, so that if there were many articles of a certain type, we could segment that data into small lists, then request all of the segments in parallel. We speculated that this method may allow us to take advantage of some interesting caching behavior we had observed with the CMS's GraphQL API, where sometimes the monolithic GraphQL query received the response data within seconds. My team member on the CMS program began calculating metrics and upgrading their infrastructure such as their database instance to handle the additional request volume.
+
+I also added some interesting terminal output, so we could observe which queries were the most expensive or contained large data sets.
+
+<details><summary>Output of refactored GraphQL process</summary>
 
 The output is formatted into a Markdown table so it could easily be copied into a GitHub comment. The table contains columns for the name of the GraphQL query, response time in seconds, and the number of pages included in the response data (if applicable, as some queries returned data other than a list of pages.) The image below shows the output as visible in the Jenkins deployment job.
 
@@ -96,7 +111,7 @@ The output is formatted into a Markdown table so it could easily be copied into 
 I opened a pull request introducing the refactored GraphQL approach along with some preliminary results to my direct team members and those on the Platform team. The changes were also backwards-compatible, meaning that surrounding code areas continued to function the same way, so the code changes were ultimately safe to merge.
 
 ### What happened?
-We saw _dramatic_ improvement that far exceeded our expectations. The upgraded GraphQL (as it became to be known) demonstrated exponential improvement. Measuring performance was difficult because there were many variables, such as the caching mechanism of the GraphQL API, which was central to our strategy with the upgraded GraphQL queries. However, in our performance summary during the early stages of the GraphQL upgrade, __we concluded the performance improvement at 93.9% faster than the monolithic GraphQL query__. With the website at its then-current size of 1,720 pages, we saw response times at about __49 seconds__.
+__We saw dramatic improvement that far exceeded our expectations.__ The upgraded GraphQL (as it became to be known) demonstrated exponentially better performance. Measuring this was difficult because there were many variables such as the caching mechanism of the GraphQL API, which was central to our strategy with the upgraded GraphQL queries. However, in our performance summary during the early stages of the GraphQL upgrade, __we concluded the performance improvement at 93.9% faster than the monolithic GraphQL query__. With the website at its then-current size of 1,720 pages, we saw response times at about __49 seconds__.
 
 <details><summary>Performance comparison of early results</summary>
 
@@ -104,7 +119,7 @@ In the chart below, the vertical axis indicates response times in seconds, while
 
 ![line chart comparing the two query strategies](./files/graphql-comparison-chart.png)
 
-The monolithic GraphQL query could fetch 4,467 nodes in roughly 2057 seconds. The request would consistently time out beyond 5,000 nodes. The upgraded GraphQL approach, however, not just eliminated fears of timeouts but could fetch 5,561 nodes in only 177 seconds.
+The monolithic GraphQL query could fetch 4,467 nodes in roughly 2,057 seconds. The request would consistently time out beyond 5,000 nodes. The upgraded GraphQL approach, however, not just eliminated fears of timeouts but could fetch 5,561 nodes in only 177 seconds.
 
 </details>
 
