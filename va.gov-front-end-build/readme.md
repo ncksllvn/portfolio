@@ -97,7 +97,7 @@ The improvement was very evident in the Jenkins job for executing a front-build 
 
 ![screenshot of Jenkins dashboard showing build times drop from upwards of 15 minutes to about 2 minutes](./files/jenkins-content-build.png)
 
-<details>
+</details>
 
 Our VA Medical Center team confidently published hundreds more pages the following week and continues to do so as of writing. __The GraphQL upgrade effectively eliminated our concerns around website scalability__.
 
