@@ -23,14 +23,14 @@ The results of the analyis were clear - the step labelled `Parse HTML files` inc
 ### What did we do about it?
 The source code behind the memory-intensive build step was brief. It was not hard to understand why it was so memory-intensive. Each build step has access to every file of the website with the contents of each file available as a plain string (text) value. However, some build steps perform advanced file manipulations that require the plain string value of `.html` files parsed into a virtual DOM tree, so that the HTML file can be manipulated in sophisticated ways. The `Parse HTML files` build step parsed a virtual DOM tree from every `.html` file, which subsequent build steps could then reliably access (an example of one of these build steps is one that automatically generates and adds element-IDs onto heading tags.) This means that the combined weight of every HTML file's virtual DOM was stored in memory at once.
 
-<details><summary>Code snippet of build step of interest</summary>
+<details><summary>Code snippet of build step</summary>
 
 The code of interest iterates through all of the files and uses `Cheerio` (an NPM package) to parse a virtual DOM from every HTML file, binding the result of each operation to the original file object. The combined result is stored in memory all at once.
 
-![Screenshot of problematic code](./files/memory-bottleneck-code/pdf)
+![Screenshot of problematic code](./files/memory-bottleneck-code.pdf)
 </details>
 
-The concept behind my approach was simple - since it uses too much memory to have every file's virtual DOM in memory at once, only store one at a time. Simply parse the virtual DOM of a single file, operate only on it, delete its virtual DOM and then repeat with the next file. This would also require refactoring subsequent build steps that required  each file's virtual DOM, but it would mean only one virtual DOM would be stored in memory at a time.
+The concept behind my approach for improving it was simple - since it uses too much memory to have every file's virtual DOM in memory at once, only store one at a time. Parse the virtual DOM of a single file, operate only on it, delete its virtual DOM and then repeat with the next file. This would also require refactoring subsequent build steps that required each file's virtual DOM, but it would mean only one virtual DOM would be stored in memory at a time.
 
 I opened a pull request proposing the changes to my direct team members and those on the Platform team.
 
@@ -90,13 +90,13 @@ In the following month, we made even deeper improvements by addressing some of t
 
 <details><summary>Performance comparison after further optimizations</summary>
 
-In the chart below, the vertical axis indicates response times in seconds, while the horizontal axis indicates numbers of nodes. A _node_ can be considered a block of content used to compose an article. A single article may be composed of one or many nodes.The blue and red lines represent the performance of the monolithic GraphQL query, while the yellow and green lines represent the upgraded GraphQL query.
+In the chart below, the vertical axis indicates response times in seconds, while the horizontal axis indicates numbers of nodes. A _node_ can be considered a block of content used to compose an article. A single article may be composed of one or many nodes. The blue and red lines represent the performance of the monolithic GraphQL query, while the yellow and green lines represent the upgraded GraphQL query.
 
 ![line chart comparing the two query strategies plus parallelization](./files/graphql-comparison-chart-2.JPG)
 
 </details>
 
-After these deeper improvements, we measured an approximate __96% increase in processing time or 30X increase in throughput__.
+After these deeper improvements, teams concluded an approximate __96% increase in processing time or 30X increase in throughput__.
 
 <details><summary>Improvements to overall deployment times</summary>
 
